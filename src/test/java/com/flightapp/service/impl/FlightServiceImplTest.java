@@ -1,0 +1,158 @@
+package com.flightapp.service.impl;
+
+import com.flightapp.TestDataFactory;
+import com.flightapp.dto.FlightInventoryRequest;
+import com.flightapp.dto.FlightSearchRequest;
+import com.flightapp.entity.Airline;
+import com.flightapp.entity.Flight;
+import com.flightapp.exception.ApiException;
+import com.flightapp.repository.AirlineRepository;
+import com.flightapp.repository.FlightRepository;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
+
+import java.time.LocalDateTime;
+
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
+
+public class FlightServiceImplTest {
+
+    private FlightRepository flightRepository;
+    private AirlineRepository airlineRepository;
+    private FlightServiceImpl flightService;
+
+    @BeforeEach
+    void setup() {
+        flightRepository = mock(FlightRepository.class);
+        airlineRepository = mock(AirlineRepository.class);
+
+        flightService = new FlightServiceImpl(flightRepository, airlineRepository);
+    }
+
+    // --------------------------------------------------------
+    // 1) POSITIVE CASE — Add Inventory
+    // --------------------------------------------------------
+    @Test
+    void testAddInventory_success() {
+        FlightInventoryRequest req = TestDataFactory.sampleInventoryRequest();
+        Airline airline = Airline.builder().id("airline-1").name("Air India").logoUrl("logo.png").build();
+        Flight saved = TestDataFactory.sampleFlight();
+
+        when(flightRepository.findByFlightNumberAndDepartureTime(req.getFlightNumber(), req.getDepartureTime()))
+                .thenReturn(Mono.empty());
+
+        when(airlineRepository.findByName(req.getAirlineName()))
+                .thenReturn(Mono.just(airline));
+
+        when(flightRepository.save(any(Flight.class))).thenReturn(Mono.just(saved));
+
+        StepVerifier.create(flightService.addInventory(req))
+                .expectNext(saved)
+                .verifyComplete();
+    }
+
+    // --------------------------------------------------------
+    // 2) NEGATIVE CASE — Duplicate flight
+    // --------------------------------------------------------
+    @Test
+    void testAddInventory_duplicateFlight() {
+        FlightInventoryRequest req = TestDataFactory.sampleInventoryRequest();
+        Flight existing = TestDataFactory.sampleFlight();
+
+        when(flightRepository.findByFlightNumberAndDepartureTime(req.getFlightNumber(), req.getDepartureTime()))
+                .thenReturn(Mono.just(existing));
+
+        StepVerifier.create(flightService.addInventory(req))
+                .expectErrorMatches(ex -> ex instanceof ApiException &&
+                        ex.getMessage().contains("already exists"))
+                .verify();
+    }
+
+    // --------------------------------------------------------
+    // 3) VALIDATION — Departure after arrival
+    // --------------------------------------------------------
+    @Test
+    void testAddInventory_departureAfterArrival() {
+        FlightInventoryRequest req = TestDataFactory.sampleInventoryRequest();
+        req.setDepartureTime(LocalDateTime.of(2025, 2, 15, 13, 0)); // AFTER arrival
+
+        StepVerifier.create(flightService.addInventory(req))
+                .expectError(ApiException.class)
+                .verify();
+    }
+
+    // --------------------------------------------------------
+    // 4) VALIDATION — Price must be > 0
+    // --------------------------------------------------------
+    @Test
+    void testAddInventory_invalidPrice() {
+        FlightInventoryRequest req = TestDataFactory.sampleInventoryRequest();
+        req.setPrice(0f);
+
+        StepVerifier.create(flightService.addInventory(req))
+                .expectError(ApiException.class)
+                .verify();
+    }
+
+    // --------------------------------------------------------
+    // 5) VALIDATION — Seats must be > 0
+    // --------------------------------------------------------
+    @Test
+    void testAddInventory_invalidSeatCount() {
+        FlightInventoryRequest req = TestDataFactory.sampleInventoryRequest();
+        req.setTotalSeats(0);
+
+        StepVerifier.create(flightService.addInventory(req))
+                .expectError(ApiException.class)
+                .verify();
+    }
+
+    // --------------------------------------------------------
+    // 6) SEARCH FLIGHTS — Positive Case
+    // --------------------------------------------------------
+    @Test
+    void testSearchFlights_success() {
+        FlightSearchRequest req = TestDataFactory.sampleSearchRequest();
+        Flight f = TestDataFactory.sampleFlight();
+
+        when(flightRepository.findByFromPlaceAndToPlaceAndDepartureTimeBetween(anyString(), anyString(), any(), any()))
+                .thenReturn(Flux.just(f));
+
+        StepVerifier.create(flightService.searchFlights(req))
+                .expectNext(f)
+                .verifyComplete();
+    }
+
+    // --------------------------------------------------------
+    // 7) GET FLIGHT BY ID — Success
+    // --------------------------------------------------------
+    @Test
+    void testGetFlightById_success() {
+        Flight f = TestDataFactory.sampleFlight();
+
+        when(flightRepository.findById("flight-1")).thenReturn(Mono.just(f));
+
+        StepVerifier.create(flightService.getFlightById("flight-1"))
+                .expectNext(f)
+                .verifyComplete();
+    }
+
+    // --------------------------------------------------------
+    // 8) GET FLIGHT BY ID — Not Found
+    // --------------------------------------------------------
+    @Test
+    void testGetFlightById_notFound() {
+        when(flightRepository.findById("flight-1")).thenReturn(Mono.empty());
+
+        StepVerifier.create(flightService.getFlightById("flight-1"))
+                .expectErrorMatches(ex -> ex instanceof ApiException &&
+                        ex.getMessage().contains("Flight not found"))
+                .verify();
+    }
+}
