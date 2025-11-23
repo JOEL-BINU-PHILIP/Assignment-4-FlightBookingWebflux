@@ -46,7 +46,7 @@ public class GlobalErrorHandler {
 		// I printed the exception so I can debug things while developing.
 		ex.printStackTrace();
 
-		// Returning a generic error message 
+		// Returning a generic error message
 		return Mono.just(
 				ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", "Internal server error")));
 	}
