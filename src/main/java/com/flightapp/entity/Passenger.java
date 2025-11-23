@@ -13,15 +13,15 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Document(collection = "passengers")
 public class Passenger {
 
-    @Id
-    private String id; // Mongo gives string IDs
-    //Data of a person
-    private String name;
-    private String gender;
-    private Integer age;
-    private String seatNumber;
-    private String meal;
+	@Id
+	private String id; // Mongo gives string IDs
+	// Data of a person
+	private String name;
+	private String gender;
+	private Integer age;
+	private String seatNumber;
+	private String meal;
 
-    // Connects the passenger to a booking.
-    private String bookingId;
+	// Connects the passenger to a booking.
+	private String bookingId;
 }
