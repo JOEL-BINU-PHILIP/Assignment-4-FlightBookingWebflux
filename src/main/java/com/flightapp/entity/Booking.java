@@ -16,21 +16,21 @@ import java.time.LocalDateTime;
 public class Booking {
 
 	@Id
-	private String id; // Mongo ID
+	String id; // Mongo ID
 
 	// PNR is manually generated (UUID trimmed)
-	private String pnr;
-	private String email;
+	String pnr;
+	String email;
 
 	// Linking to flight using flightId (string)
-	private String flightId;
+	String flightId;
 
 	// number of seats booked
-	private Integer seatsBooked;
+	Integer seatsBooked;
 
-	private LocalDateTime bookingTime;
+	LocalDateTime bookingTime;
 
 	// If user cancels ticket, I mark canceled=true.
-	private Boolean canceled;
-	private LocalDateTime canceledAt;
+	Boolean canceled;
+	LocalDateTime canceledAt;
 }
