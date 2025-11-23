@@ -44,23 +44,36 @@ public class FlightServiceImpl implements FlightService {
 			return Mono.error(new ApiException("Price must be > 0"));
 		}
 
-		// Find airline OR create a new one if not exists
-		Mono<Airline> airlineMono = airlineRepository.findByName(request.getAirlineName())
-				.switchIfEmpty(airlineRepository.save(
-						Airline.builder().name(request.getAirlineName()).logoUrl(request.getAirlineLogoUrl()).build()));
+		// Check if same flight already exists
+		// I added this because it was creating duplicate flight entries
+		return flightRepository
+				.findByFlightNumberAndDepartureTime(request.getFlightNumber(), request.getDepartureTime())
+				.flatMap(existing -> {
+					// If I reach here, means the flight is already present
+					return Mono.error(
+							new ApiException("Flight already exists with same flight number"));
+				})
+				// If no duplicate -> continue normal flow
+				.switchIfEmpty(Mono.defer(() -> {
 
-		// After we get the airline, create a flight
-		return airlineMono.flatMap(airline -> {
+					// Find airline OR create a new one if not exists
+					Mono<Airline> airlineMono = airlineRepository.findByName(request.getAirlineName())
+							.switchIfEmpty(airlineRepository.save(Airline.builder().name(request.getAirlineName())
+									.logoUrl(request.getAirlineLogoUrl()).build()));
 
-			Flight flight = Flight.builder().flightNumber(request.getFlightNumber()).fromPlace(request.getFromPlace())
-					.toPlace(request.getToPlace()).departureTime(request.getDepartureTime())
-					.arrivalTime(request.getArrivalTime()).price(request.getPrice()).totalSeats(request.getTotalSeats())
-					.availableSeats(request.getTotalSeats()) // initially all seats available
-					.airlineId(airline.getId()).build();
+					// After we get the airline, create a flight
+					return airlineMono.flatMap(airline -> {
 
-			// Mongo just stores the document, simple!
-			return flightRepository.save(flight);
-		});
+						Flight flight = Flight.builder().flightNumber(request.getFlightNumber())
+								.fromPlace(request.getFromPlace()).toPlace(request.getToPlace())
+								.departureTime(request.getDepartureTime()).arrivalTime(request.getArrivalTime())
+								.price(request.getPrice()).totalSeats(request.getTotalSeats())
+								.availableSeats(request.getTotalSeats()) // initially all seats available
+								.airlineId(airline.getId()).build();
+
+						return flightRepository.save(flight);
+					});
+				})).cast(Flight.class); // I added this to avoid type mismatch after switchIfEmpty
 	}
 
 	@Override
