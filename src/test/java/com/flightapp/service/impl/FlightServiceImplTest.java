@@ -41,16 +41,31 @@ public class FlightServiceImplTest {
     @Test
     void testAddInventory_success() {
         FlightInventoryRequest req = TestDataFactory.sampleInventoryRequest();
-        Airline airline = Airline.builder().id("airline-1").name("Air India").logoUrl("logo.png").build();
+
+        Airline airline = Airline.builder()
+                .id("airline-1")
+                .name("Air India")
+                .logoUrl("logo.png")
+                .build();
+
         Flight saved = TestDataFactory.sampleFlight();
 
-        when(flightRepository.findByFlightNumberAndDepartureTime(req.getFlightNumber(), req.getDepartureTime()))
+        // 1) Duplicate check must return empty
+        when(flightRepository.findByFlightNumberAndDepartureTime(
+                req.getFlightNumber(), req.getDepartureTime()))
                 .thenReturn(Mono.empty());
 
+        // 2) Airline exists
         when(airlineRepository.findByName(req.getAirlineName()))
                 .thenReturn(Mono.just(airline));
 
-        when(flightRepository.save(any(Flight.class))).thenReturn(Mono.just(saved));
+        // 3) save airline must be mocked too (required!)
+        when(airlineRepository.save(any(Airline.class)))
+                .thenReturn(Mono.just(airline));
+
+        // 4) save flight
+        when(flightRepository.save(any(Flight.class)))
+                .thenReturn(Mono.just(saved));
 
         StepVerifier.create(flightService.addInventory(req))
                 .expectNext(saved)
