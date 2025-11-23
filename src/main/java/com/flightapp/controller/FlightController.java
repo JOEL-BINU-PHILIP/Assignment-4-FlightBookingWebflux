@@ -33,7 +33,6 @@ public class FlightController {
 	// I return 201 CREATED because it’s the correct HTTP code.
 	@PostMapping("/airline/inventory/add")
 	public Mono<ResponseEntity<Flight>> addInventory(@Valid @RequestBody Mono<FlightInventoryRequest> reqMono) {
-		System.out.println("DEBUG: inside addInventory controller");
 
 		// reqMono is basically the request body as a reactive stream.
 		return reqMono.flatMap(flightService::addInventory)
@@ -45,7 +44,6 @@ public class FlightController {
 	// I return Flux<Flight> because there can be multiple matching flights.
 	@PostMapping("/search")
 	public Flux<Flight> searchFlights(@Valid @RequestBody Mono<FlightSearchRequest> reqMono) {
-		System.out.println("DEBUG: inside searchflights controller");
 		// flatMapMany converts Mono -> Flux while calling the service.
 		return reqMono.flatMapMany(flightService::searchFlights);
 	}

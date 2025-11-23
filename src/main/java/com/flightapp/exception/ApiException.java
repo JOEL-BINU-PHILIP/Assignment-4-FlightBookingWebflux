@@ -6,6 +6,11 @@ package com.flightapp.exception;
 
 public class ApiException extends RuntimeException {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
 	// Just passing the message to the parent RuntimeException
 	public ApiException(String message) {
 		super(message);
