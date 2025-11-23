@@ -32,7 +32,7 @@ public class FlightInventoryRequest {
 	private LocalDateTime arrivalTime;
 
 	@NotNull
-	private Double price;
+	private Float price;
 
 	@NotNull
 	@Min(1)
