@@ -2,6 +2,7 @@ package com.flightapp.entity;
 
 import lombok.*;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.CompoundIndex;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
@@ -14,12 +15,12 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 @Document(collection = "flights")
+@CompoundIndex(name = "unique_flight_departure", def = "{'flightNumber': 1, 'departureTime': 1}", unique = true)
 public class Flight {
 
 	@Id
-	private String id; // Mongo ID is a string (ObjectId internally)
+	private String id;
 
-	// Basic flight details
 	private String flightNumber;
 	private String fromPlace;
 	private String toPlace;
@@ -28,11 +29,8 @@ public class Flight {
 	private LocalDateTime arrivalTime;
 
 	private Double price;
-
-	// totalSeats is fixed, availableSeats updates whenever booking happens.
 	private Integer totalSeats;
 	private Integer availableSeats;
 
-	// Instead of foreign key, I'm storing airlineId manually.
 	private String airlineId;
 }
