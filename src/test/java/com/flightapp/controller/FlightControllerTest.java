@@ -26,7 +26,8 @@ public class FlightControllerTest {
     private FlightService flightService;
     private BookingService bookingService;
     private WebTestClient webTestClient;
-
+    private static String apiPath= "/api/v1.0/flight/airline/inventory/add";
+    private static String flightString  = "flight-1";
     @BeforeEach
     void setup() {
         flightService = mock(FlightService.class);
@@ -50,13 +51,13 @@ public class FlightControllerTest {
         when(flightService.addInventory(any())).thenReturn(Mono.just(saved));
 
         webTestClient.post()
-                .uri("/api/v1.0/flight/airline/inventory/add")
+                .uri(apiPath)
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(req)
                 .exchange()
                 .expectStatus().isCreated()
                 .expectBody()
-                .jsonPath("$.id").isEqualTo("flight-1");
+                .jsonPath("$.id").isEqualTo(flightString);
     }
 
     // ---------------------------------------------------
@@ -70,7 +71,7 @@ public class FlightControllerTest {
                 .thenReturn(Mono.error(new ApiException("Duplicate flight")));
 
         webTestClient.post()
-                .uri("/api/v1.0/flight/airline/inventory/add")
+                .uri(apiPath)
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(req)
                 .exchange()
@@ -88,7 +89,7 @@ public class FlightControllerTest {
         req.setFlightNumber(""); // invalid
 
         webTestClient.post()
-                .uri("/api/v1.0/flight/airline/inventory/add")
+                .uri(apiPath)
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(req)
                 .exchange()
@@ -143,7 +144,7 @@ public class FlightControllerTest {
         BookingRequest req = TestDataFactory.sampleBookingRequest();
         BookingResponse resp = BookingResponse.builder()
                 .pnr("ABCD1234")
-                .flightId("flight-1")
+                .flightId(flightString)
                 .email("test@example.com")
                 .seatsBooked(1)
                 .build();
@@ -187,7 +188,7 @@ public class FlightControllerTest {
     void testGetTicket_success() {
         BookingResponse resp = BookingResponse.builder()
                 .pnr("PNR12345")
-                .flightId("flight-1")
+                .flightId(flightString)
                 .build();
 
         when(bookingService.getTicketByPnr("PNR12345")).thenReturn(Mono.just(resp));
@@ -223,7 +224,7 @@ public class FlightControllerTest {
     void testBookingHistory_success() {
         BookingResponse resp = BookingResponse.builder()
                 .pnr("PNR00001")
-                .flightId("flight-1")
+                .flightId(flightString)
                 .build();
 
         when(bookingService.getBookingHistory("test@example.com"))

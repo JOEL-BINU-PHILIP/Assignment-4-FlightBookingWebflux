@@ -14,7 +14,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 public class BookingRepositoryTest {
 
 	private BookingRepository bookingRepository;
-
+    private static String pnr = "PNR12345";
 	@BeforeEach
 	void setup() {
 		bookingRepository = Mockito.mock(BookingRepository.class);
@@ -25,12 +25,12 @@ public class BookingRepositoryTest {
 	// ---------------------------------------------------------------------
 	@Test
 	void testFindByPnr_Found() {
-		Booking booking = Booking.builder().id("B1").pnr("PNR12345").email("test@mail.com").build();
+		Booking booking = Booking.builder().id("B1").pnr(pnr).email("test@mail.com").build();
 
-		Mockito.when(bookingRepository.findByPnr("PNR12345")).thenReturn(Mono.just(booking));
+		Mockito.when(bookingRepository.findByPnr(pnr)).thenReturn(Mono.just(booking));
 
-		StepVerifier.create(bookingRepository.findByPnr("PNR12345"))
-				.expectNextMatches(b -> b.getPnr().equals("PNR12345")).verifyComplete();
+		StepVerifier.create(bookingRepository.findByPnr(pnr))
+				.expectNextMatches(b -> b.getPnr().equals(pnr)).verifyComplete();
 	}
 
 	@Test

@@ -21,7 +21,6 @@ public class GlobalErrorHandler {
 	@ExceptionHandler(ApiException.class)
 	public Mono<ResponseEntity<Map<String, String>>> handleApiException(ApiException ex) {
 
-		// Responding with a JSON map like: { "error": "My message" }
 		return Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", ex.getMessage())));
 	}
 

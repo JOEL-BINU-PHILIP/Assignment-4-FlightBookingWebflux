@@ -50,8 +50,7 @@ public class FlightServiceImpl implements FlightService {
 				.findByFlightNumberAndDepartureTime(request.getFlightNumber(), request.getDepartureTime())
 				.flatMap(existing -> {
 					// If I reach here, means the flight is already present
-					return Mono.error(
-							new ApiException("Flight already exists with same flight number"));
+					return Mono.error(new ApiException("Flight already exists with same flight number"));
 				})
 				// If no duplicate -> continue normal flow
 				.switchIfEmpty(Mono.defer(() -> {
