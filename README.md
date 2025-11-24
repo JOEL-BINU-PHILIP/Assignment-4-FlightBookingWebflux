@@ -89,7 +89,10 @@ or
 ```
 http://localhost:8080/swagger-ui/index.html
 ```
+Below is the Swagger/OpenAPI interface of the Flight Booking WebFlux backend:
 
+![Swagger UI](assets/swagger-ui.png)
+![Swagger UI](assets/swagger-ui2.png)
 ---
 
 ## Running the Application
