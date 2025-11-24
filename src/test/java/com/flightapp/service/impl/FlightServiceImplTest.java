@@ -8,7 +8,9 @@ import com.flightapp.entity.Flight;
 import com.flightapp.exception.ApiException;
 import com.flightapp.repository.AirlineRepository;
 import com.flightapp.repository.FlightRepository;
+import com.flightapp.service.FlightService;
 
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -43,9 +45,8 @@ public class FlightServiceImplTest {
 
 		FlightInventoryRequest req = TestDataFactory.sampleInventoryRequest();
 
-		// change departure to far future so validation never fails
 		req.setDepartureTime(LocalDateTime.now().plusDays(10));
-		req.setArrivalTime(LocalDateTime.now().plusDays(10).plusHours(2));
+		req.setArrivalTime(req.getDepartureTime().plusHours(2));
 
 		Airline airline = Airline.builder().id("airline-1").name("Air India").logoUrl("logo.png").build();
 
@@ -54,17 +55,13 @@ public class FlightServiceImplTest {
 				.price(req.getPrice()).totalSeats(req.getTotalSeats()).availableSeats(req.getTotalSeats())
 				.airlineId("airline-1").build();
 
-		// 1) no duplicate
 		when(flightRepository.findByFlightNumberAndDepartureTime(req.getFlightNumber(), req.getDepartureTime()))
 				.thenReturn(Mono.empty());
 
-		// 2) airline exists
 		when(airlineRepository.findByName(req.getAirlineName())).thenReturn(Mono.just(airline));
 
-		// 3) airline save (must be mocked)
 		when(airlineRepository.save(any())).thenReturn(Mono.just(airline));
 
-		// 4) flight save
 		when(flightRepository.save(any())).thenReturn(Mono.just(saved));
 
 		StepVerifier.create(flightService.addInventory(req)).expectNext(saved).verifyComplete();
@@ -77,7 +74,9 @@ public class FlightServiceImplTest {
 	void testAddInventory_duplicateFlight() {
 
 		FlightInventoryRequest req = TestDataFactory.sampleInventoryRequest();
-		req.setDepartureTime(LocalDateTime.now().plusDays(10)); // ensure future date
+
+		req.setDepartureTime(LocalDateTime.now().plusDays(10));
+		req.setArrivalTime(req.getDepartureTime().plusHours(2)); // REQUIRED FIX
 
 		Flight existing = TestDataFactory.sampleFlight();
 
@@ -110,9 +109,9 @@ public class FlightServiceImplTest {
 	void testAddInventory_invalidPrice() {
 
 		FlightInventoryRequest req = TestDataFactory.sampleInventoryRequest();
+
 		req.setDepartureTime(LocalDateTime.now().plusDays(5));
 		req.setArrivalTime(req.getDepartureTime().plusHours(2));
-
 		req.setPrice(0f);
 
 		StepVerifier.create(flightService.addInventory(req)).expectError(ApiException.class).verify();
@@ -125,9 +124,9 @@ public class FlightServiceImplTest {
 	void testAddInventory_invalidSeatCount() {
 
 		FlightInventoryRequest req = TestDataFactory.sampleInventoryRequest();
+
 		req.setDepartureTime(LocalDateTime.now().plusDays(5));
 		req.setArrivalTime(req.getDepartureTime().plusHours(2));
-
 		req.setTotalSeats(0);
 
 		StepVerifier.create(flightService.addInventory(req)).expectError(ApiException.class).verify();

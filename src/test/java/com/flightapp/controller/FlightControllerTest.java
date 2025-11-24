@@ -23,231 +23,164 @@ import static org.mockito.Mockito.*;
 
 public class FlightControllerTest {
 
-    private FlightService flightService;
-    private BookingService bookingService;
-    private WebTestClient webTestClient;
-    private static String apiPath= "/api/v1.0/flight/airline/inventory/add";
-    private static String flightString  = "flight-1";
-    @BeforeEach
-    void setup() {
-        flightService = mock(FlightService.class);
-        bookingService = mock(BookingService.class);
+	private FlightService flightService;
+	private BookingService bookingService;
+	private WebTestClient webTestClient;
+	private static String apiPath = "/api/v1.0/flight/airline/inventory/add";
+	private static String flightString = "flight-1";
 
-        FlightController controller = new FlightController(flightService, bookingService);
+	@BeforeEach
+	void setup() {
+		flightService = mock(FlightService.class);
+		bookingService = mock(BookingService.class);
 
-        webTestClient = WebTestClient.bindToController(controller)
-                .controllerAdvice(new com.flightapp.exception.GlobalErrorHandler())
-                .build();
-    }
+		FlightController controller = new FlightController(flightService, bookingService);
 
-    // ---------------------------------------------------
-    // 1) ADD INVENTORY — SUCCESS
-    // ---------------------------------------------------
-    @Test
-    void testAddInventory_success() {
-        FlightInventoryRequest req = TestDataFactory.sampleInventoryRequest();
-        Flight saved = TestDataFactory.sampleFlight();
+		webTestClient = WebTestClient.bindToController(controller)
+				.controllerAdvice(new com.flightapp.exception.GlobalErrorHandler()).build();
+	}
 
-        when(flightService.addInventory(any())).thenReturn(Mono.just(saved));
+	// ---------------------------------------------------
+	// 1) ADD INVENTORY — SUCCESS
+	// ---------------------------------------------------
+	@Test
+	void testAddInventory_success() {
+		FlightInventoryRequest req = TestDataFactory.sampleInventoryRequest();
+		Flight saved = TestDataFactory.sampleFlight();
 
-        webTestClient.post()
-                .uri(apiPath)
-                .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(req)
-                .exchange()
-                .expectStatus().isCreated()
-                .expectBody()
-                .jsonPath("$.id").isEqualTo(flightString);
-    }
+		when(flightService.addInventory(any())).thenReturn(Mono.just(saved));
 
-    // ---------------------------------------------------
-    // 2) ADD INVENTORY — SERVICE THROWS ERROR
-    // ---------------------------------------------------
-    @Test
-    void testAddInventory_serviceError() {
-        FlightInventoryRequest req = TestDataFactory.sampleInventoryRequest();
+		webTestClient.post().uri(apiPath).contentType(MediaType.APPLICATION_JSON).bodyValue(req).exchange()
+				.expectStatus().isCreated().expectBody().jsonPath("$.id").isEqualTo(flightString);
+	}
 
-        when(flightService.addInventory(any()))
-                .thenReturn(Mono.error(new ApiException("Duplicate flight")));
+	// ---------------------------------------------------
+	// 2) ADD INVENTORY — SERVICE THROWS ERROR
+	// ---------------------------------------------------
+	@Test
+	void testAddInventory_serviceError() {
+		FlightInventoryRequest req = TestDataFactory.sampleInventoryRequest();
 
-        webTestClient.post()
-                .uri(apiPath)
-                .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(req)
-                .exchange()
-                .expectStatus().isBadRequest()
-                .expectBody()
-                .jsonPath("$.error").isEqualTo("Duplicate flight");
-    }
+		when(flightService.addInventory(any())).thenReturn(Mono.error(new ApiException("Duplicate flight")));
 
-    // ---------------------------------------------------
-    // 3) ADD INVENTORY — VALIDATION FAILURE
-    // ---------------------------------------------------
-    @Test
-    void testAddInventory_validationFailed() {
-        FlightInventoryRequest req = TestDataFactory.sampleInventoryRequest();
-        req.setFlightNumber(""); // invalid
+		webTestClient.post().uri(apiPath).contentType(MediaType.APPLICATION_JSON).bodyValue(req).exchange()
+				.expectStatus().isBadRequest().expectBody().jsonPath("$.error").isEqualTo("Duplicate flight");
+	}
 
-        webTestClient.post()
-                .uri(apiPath)
-                .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(req)
-                .exchange()
-                .expectStatus().isBadRequest()
-                .expectBody()
-                .jsonPath("$.flightNumber").exists();
-    }
+	// ---------------------------------------------------
+	// 3) ADD INVENTORY — VALIDATION FAILURE
+	// ---------------------------------------------------
+	@Test
+	void testAddInventory_validationFailed() {
+		FlightInventoryRequest req = TestDataFactory.sampleInventoryRequest();
+		req.setFlightNumber(""); // invalid
 
-    // ---------------------------------------------------
-    // 4) SEARCH FLIGHTS — SUCCESS
-    // ---------------------------------------------------
-    @Test
-    void testSearchFlights_success() {
-        Flight flight = TestDataFactory.sampleFlight();
-        FlightSearchRequest req = TestDataFactory.sampleSearchRequest();
+		webTestClient.post().uri(apiPath).contentType(MediaType.APPLICATION_JSON).bodyValue(req).exchange()
+				.expectStatus().isBadRequest().expectBody().jsonPath("$.flightNumber").exists();
+	}
 
-        when(flightService.searchFlights(any())).thenReturn(Flux.just(flight));
+	// ---------------------------------------------------
+	// 4) SEARCH FLIGHTS — SUCCESS
+	// ---------------------------------------------------
+	@Test
+	void testSearchFlights_success() {
+		Flight flight = TestDataFactory.sampleFlight();
+		FlightSearchRequest req = TestDataFactory.sampleSearchRequest();
 
-        webTestClient.post()
-                .uri("/api/v1.0/flight/search")
-                .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(req)
-                .exchange()
-                .expectStatus().isOk()
-                .expectBody()
-                .jsonPath("$[0].flightNumber").isEqualTo("AI101");
-    }
+		when(flightService.searchFlights(any())).thenReturn(Flux.just(flight));
 
-    // ---------------------------------------------------
-    // 5) SEARCH — NO FLIGHTS
-    // ---------------------------------------------------
-    @Test
-    void testSearchFlights_noResults() {
-        FlightSearchRequest req = TestDataFactory.sampleSearchRequest();
+		webTestClient.post().uri("/api/v1.0/flight/search").contentType(MediaType.APPLICATION_JSON).bodyValue(req)
+				.exchange().expectStatus().isOk().expectBody().jsonPath("$[0].flightNumber").isEqualTo("AI101");
+	}
 
-        when(flightService.searchFlights(any())).thenReturn(Flux.empty());
+	// ---------------------------------------------------
+	// 5) SEARCH — NO FLIGHTS
+	// ---------------------------------------------------
+	@Test
+	void testSearchFlights_noResults() {
+		FlightSearchRequest req = TestDataFactory.sampleSearchRequest();
 
-        webTestClient.post()
-                .uri("/api/v1.0/flight/search")
-                .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(req)
-                .exchange()
-                .expectStatus().isOk()
-                .expectBody().json("[]");
-    }
+		when(flightService.searchFlights(any())).thenReturn(Flux.empty());
 
-    // ---------------------------------------------------
-    // 6) BOOK TICKET — SUCCESS
-    // ---------------------------------------------------
-    @Test
-    void testBookTicket_success() {
-        BookingRequest req = TestDataFactory.sampleBookingRequest();
-        BookingResponse resp = BookingResponse.builder()
-                .pnr("ABCD1234")
-                .flightId(flightString)
-                .email("test@example.com")
-                .seatsBooked(1)
-                .build();
+		webTestClient.post().uri("/api/v1.0/flight/search").contentType(MediaType.APPLICATION_JSON).bodyValue(req)
+				.exchange().expectStatus().isOk().expectBody().json("[]");
+	}
 
-        when(bookingService.bookTicket(anyString(), any())).thenReturn(Mono.just(resp));
+	// ---------------------------------------------------
+	// 6) BOOK TICKET — SUCCESS
+	// ---------------------------------------------------
+	@Test
+	void testBookTicket_success() {
+		BookingRequest req = TestDataFactory.sampleBookingRequest();
+		BookingResponse resp = BookingResponse.builder().pnr("ABCD1234").flightId(flightString)
+				.email("test@example.com").seatsBooked(1).build();
 
-        webTestClient.post()
-                .uri("/api/v1.0/flight/booking/flight-1")
-                .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(req)
-                .exchange()
-                .expectStatus().isCreated()
-                .expectBody()
-                .jsonPath("$.pnr").isEqualTo("ABCD1234");
-    }
+		when(bookingService.bookTicket(anyString(), any())).thenReturn(Mono.just(resp));
 
-    // ---------------------------------------------------
-    // 7) BOOK TICKET — SERVICE ERROR
-    // ---------------------------------------------------
-    @Test
-    void testBookTicket_serviceError() {
-        BookingRequest req = TestDataFactory.sampleBookingRequest();
+		webTestClient.post().uri("/api/v1.0/flight/booking/flight-1").contentType(MediaType.APPLICATION_JSON)
+				.bodyValue(req).exchange().expectStatus().isCreated().expectBody().jsonPath("$.pnr")
+				.isEqualTo("ABCD1234");
+	}
 
-        when(bookingService.bookTicket(anyString(), any()))
-                .thenReturn(Mono.error(new ApiException("Not enough seats")));
+	// ---------------------------------------------------
+	// 7) BOOK TICKET — SERVICE ERROR
+	// ---------------------------------------------------
+	@Test
+	void testBookTicket_serviceError() {
+		BookingRequest req = TestDataFactory.sampleBookingRequest();
 
-        webTestClient.post()
-                .uri("/api/v1.0/flight/booking/flight-1")
-                .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(req)
-                .exchange()
-                .expectStatus().isBadRequest()
-                .expectBody()
-                .jsonPath("$.error").isEqualTo("Not enough seats");
-    }
+		when(bookingService.bookTicket(anyString(), any()))
+				.thenReturn(Mono.error(new ApiException("Not enough seats")));
 
-    // ---------------------------------------------------
-    // 8) GET TICKET BY PNR — SUCCESS
-    // ---------------------------------------------------
-    @Test
-    void testGetTicket_success() {
-        BookingResponse resp = BookingResponse.builder()
-                .pnr("PNR12345")
-                .flightId(flightString)
-                .build();
+		webTestClient.post().uri("/api/v1.0/flight/booking/flight-1").contentType(MediaType.APPLICATION_JSON)
+				.bodyValue(req).exchange().expectStatus().isBadRequest().expectBody().jsonPath("$.error")
+				.isEqualTo("Not enough seats");
+	}
 
-        when(bookingService.getTicketByPnr("PNR12345")).thenReturn(Mono.just(resp));
+	// ---------------------------------------------------
+	// 8) GET TICKET BY PNR — SUCCESS
+	// ---------------------------------------------------
+	@Test
+	void testGetTicket_success() {
+		BookingResponse resp = BookingResponse.builder().pnr("PNR12345").flightId(flightString).build();
 
-        webTestClient.get()
-                .uri("/api/v1.0/flight/ticket/PNR12345")
-                .exchange()
-                .expectStatus().isOk()
-                .expectBody()
-                .jsonPath("$.pnr").isEqualTo("PNR12345");
-    }
+		when(bookingService.getTicketByPnr("PNR12345")).thenReturn(Mono.just(resp));
 
-    // ---------------------------------------------------
-    // 9) GET TICKET — NOT FOUND
-    // ---------------------------------------------------
-    @Test
-    void testGetTicket_notFound() {
-        when(bookingService.getTicketByPnr("BAD"))
-                .thenReturn(Mono.error(new ApiException("PNR not found")));
+		webTestClient.get().uri("/api/v1.0/flight/ticket/PNR12345").exchange().expectStatus().isOk().expectBody()
+				.jsonPath("$.pnr").isEqualTo("PNR12345");
+	}
 
-        webTestClient.get()
-                .uri("/api/v1.0/flight/ticket/BAD")
-                .exchange()
-                .expectStatus().isBadRequest()
-                .expectBody()
-                .jsonPath("$.error").isEqualTo("PNR not found");
-    }
+	// ---------------------------------------------------
+	// 9) GET TICKET — NOT FOUND
+	// ---------------------------------------------------
+	@Test
+	void testGetTicket_notFound() {
+		when(bookingService.getTicketByPnr("BAD")).thenReturn(Mono.error(new ApiException("PNR not found")));
 
-    // ---------------------------------------------------
-    // 10) BOOKING HISTORY — SUCCESS
-    // ---------------------------------------------------
-    @Test
-    void testBookingHistory_success() {
-        BookingResponse resp = BookingResponse.builder()
-                .pnr("PNR00001")
-                .flightId(flightString)
-                .build();
+		webTestClient.get().uri("/api/v1.0/flight/ticket/BAD").exchange().expectStatus().isBadRequest().expectBody()
+				.jsonPath("$.error").isEqualTo("PNR not found");
+	}
 
-        when(bookingService.getBookingHistory("test@example.com"))
-                .thenReturn(Flux.just(resp));
+	// ---------------------------------------------------
+	// 10) BOOKING HISTORY — SUCCESS
+	// ---------------------------------------------------
+	@Test
+	void testBookingHistory_success() {
+		BookingResponse resp = BookingResponse.builder().pnr("PNR00001").flightId(flightString).build();
 
-        webTestClient.get()
-                .uri("/api/v1.0/flight/booking/history/test@example.com")
-                .exchange()
-                .expectStatus().isOk()
-                .expectBody()
-                .jsonPath("$[0].pnr").isEqualTo("PNR00001");
-    }
+		when(bookingService.getBookingHistory("test@example.com")).thenReturn(Flux.just(resp));
 
-    // ---------------------------------------------------
-    // 11) CANCEL BOOKING — SUCCESS
-    // ---------------------------------------------------
-    @Test
-    void testCancelBooking_success() {
-        when(bookingService.cancelBooking("PNR12345")).thenReturn(Mono.empty());
+		webTestClient.get().uri("/api/v1.0/flight/booking/history/test@example.com").exchange().expectStatus().isOk()
+				.expectBody().jsonPath("$[0].pnr").isEqualTo("PNR00001");
+	}
 
-        webTestClient.delete()
-                .uri("/api/v1.0/flight/booking/cancel/PNR12345")
-                .exchange()
-                .expectStatus().isNoContent();
-    }
+	// ---------------------------------------------------
+	// 11) CANCEL BOOKING — SUCCESS
+	// ---------------------------------------------------
+	@Test
+	void testCancelBooking_success() {
+		when(bookingService.cancelBooking("PNR12345")).thenReturn(Mono.empty());
+
+		webTestClient.delete().uri("/api/v1.0/flight/booking/cancel/PNR12345").exchange().expectStatus().isNoContent();
+	}
 }

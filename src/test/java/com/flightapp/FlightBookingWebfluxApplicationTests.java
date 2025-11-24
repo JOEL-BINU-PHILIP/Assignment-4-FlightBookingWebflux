@@ -8,9 +8,9 @@ import com.flightapp.FlightBookingWebfluxApplication;
 @SpringBootTest(classes = FlightBookingWebfluxApplication.class)
 public class FlightBookingWebfluxApplicationTests {
 
-    @Test
-    void contextLoads() {
-    	 // Intentionally left empty because this method is not required in WebFlux version
-    }
+	@Test
+	void contextLoads() {
+		// Intentionally left empty because this method is not required in WebFlux
+		// version
+	}
 }
-

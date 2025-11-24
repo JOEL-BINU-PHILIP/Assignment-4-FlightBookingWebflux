@@ -7,28 +7,30 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
-// TestDataFactory
-// Simple factory to create sample DTOs and entities used across unit tests.
-
 public class TestDataFactory {
 
 	// ---------- Flight / Inventory ----------
 	private static String placeString = "Bangalore";
 	private static String placeString2 = "Mumbai";
 
-	// Always create future times for testing
-	private static LocalDateTime futureDeparture() {
+	// Base future departure always valid
+	private static LocalDateTime baseFutureDeparture() {
 		return LocalDateTime.now().plusDays(10).withHour(10).withMinute(30);
 	}
 
-	private static LocalDateTime futureArrival() {
-		return LocalDateTime.now().plusDays(10).withHour(12).withMinute(45);
+	// Arrival ALWAYS > departure
+	private static LocalDateTime arrivalAfter(LocalDateTime departure) {
+		return departure.plusHours(2); // guaranteed valid
 	}
 
 	public static FlightInventoryRequest sampleInventoryRequest() {
+
+		LocalDateTime departure = baseFutureDeparture();
+		LocalDateTime arrival = arrivalAfter(departure);
+
 		return FlightInventoryRequest.builder().flightNumber("AI101").fromPlace(placeString).toPlace(placeString2)
-				.departureTime(futureDeparture()).arrivalTime(futureArrival()).price(4500f).totalSeats(120)
-				.airlineName("Air India").airlineLogoUrl("https://airindia.com/logo.png").build();
+				.departureTime(departure).arrivalTime(arrival).price(4500f).totalSeats(120).airlineName("Air India")
+				.airlineLogoUrl("https://airindia.com/logo.png").build();
 	}
 
 	public static FlightSearchRequest sampleSearchRequest() {
@@ -37,13 +39,16 @@ public class TestDataFactory {
 	}
 
 	public static Flight sampleFlight() {
+
+		LocalDateTime departure = baseFutureDeparture();
+		LocalDateTime arrival = arrivalAfter(departure);
+
 		return Flight.builder().id("flight-1").flightNumber("AI101").fromPlace(placeString).toPlace(placeString2)
-				.departureTime(futureDeparture()).arrivalTime(futureArrival()).price(4500f).totalSeats(120)
-				.availableSeats(120).airlineId("airline-1").build();
+				.departureTime(departure).arrivalTime(arrival).price(4500f).totalSeats(120).availableSeats(120)
+				.airlineId("airline-1").build();
 	}
 
 	// ---------- Booking / Passenger ----------
-
 	public static BookingRequest sampleBookingRequest() {
 		PassengerRequest p = PassengerRequest.builder().name("John Doe").gender("M").age(30).seatNumber("1A")
 				.meal("veg").build();

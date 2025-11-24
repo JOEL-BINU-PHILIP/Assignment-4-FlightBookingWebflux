@@ -37,9 +37,7 @@ public class GlobalErrorHandler {
 		Map<String, String> errors = new HashMap<>();
 
 		// Extracting each field error into a map
-		ex.getFieldErrors().forEach(fieldError -> {
-			errors.put(fieldError.getField(), fieldError.getDefaultMessage());
-		});
+		ex.getFieldErrors().forEach(fieldError -> errors.put(fieldError.getField(), fieldError.getDefaultMessage()));
 
 		log.warn("Validation failed with errors: {}", errors);
 
@@ -51,11 +49,8 @@ public class GlobalErrorHandler {
 	@ExceptionHandler(Exception.class)
 	public Mono<ResponseEntity<Map<String, String>>> handleAll(Exception ex) {
 
-		// I printed the exception so I can debug things while developing.
-		// (Replaced printStackTrace with proper logging)
 		log.error("Unhandled exception occurred", ex);
 
-		// Returning a generic error message
 		return Mono.just(
 				ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", "Internal server error")));
 	}

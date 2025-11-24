@@ -14,7 +14,8 @@ import static org.mockito.ArgumentMatchers.anyString;
 public class BookingRepositoryTest {
 
 	private BookingRepository bookingRepository;
-    private static String pnr = "PNR12345";
+	private static String pnr = "PNR12345";
+
 	@BeforeEach
 	void setup() {
 		bookingRepository = Mockito.mock(BookingRepository.class);
@@ -29,8 +30,8 @@ public class BookingRepositoryTest {
 
 		Mockito.when(bookingRepository.findByPnr(pnr)).thenReturn(Mono.just(booking));
 
-		StepVerifier.create(bookingRepository.findByPnr(pnr))
-				.expectNextMatches(b -> b.getPnr().equals(pnr)).verifyComplete();
+		StepVerifier.create(bookingRepository.findByPnr(pnr)).expectNextMatches(b -> b.getPnr().equals(pnr))
+				.verifyComplete();
 	}
 
 	@Test
