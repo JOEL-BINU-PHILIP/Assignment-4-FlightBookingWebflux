@@ -13,25 +13,33 @@ import java.util.List;
 public class TestDataFactory {
 
 	// ---------- Flight / Inventory ----------
-    private static String placeString = "Bangalore";
-    private static String placeString2 = "Mumbai";
-    
+	private static String placeString = "Bangalore";
+	private static String placeString2 = "Mumbai";
+
+	// Always create future times for testing
+	private static LocalDateTime futureDeparture() {
+		return LocalDateTime.now().plusDays(10).withHour(10).withMinute(30);
+	}
+
+	private static LocalDateTime futureArrival() {
+		return LocalDateTime.now().plusDays(10).withHour(12).withMinute(45);
+	}
+
 	public static FlightInventoryRequest sampleInventoryRequest() {
 		return FlightInventoryRequest.builder().flightNumber("AI101").fromPlace(placeString).toPlace(placeString2)
-				.departureTime(LocalDateTime.of(2025, 2, 15, 10, 30)).arrivalTime(LocalDateTime.of(2025, 2, 15, 12, 45))
-				.price(4500f).totalSeats(120).airlineName("Air India").airlineLogoUrl("https://airindia.com/logo.png")
-				.build();
+				.departureTime(futureDeparture()).arrivalTime(futureArrival()).price(4500f).totalSeats(120)
+				.airlineName("Air India").airlineLogoUrl("https://airindia.com/logo.png").build();
 	}
 
 	public static FlightSearchRequest sampleSearchRequest() {
 		return FlightSearchRequest.builder().fromPlace(placeString).toPlace(placeString2)
-				.travelDate(LocalDate.of(2025, 2, 15)).oneWay(true).build();
+				.travelDate(LocalDate.now().plusDays(10)).oneWay(true).build();
 	}
 
 	public static Flight sampleFlight() {
 		return Flight.builder().id("flight-1").flightNumber("AI101").fromPlace(placeString).toPlace(placeString2)
-				.departureTime(LocalDateTime.of(2025, 2, 15, 10, 30)).arrivalTime(LocalDateTime.of(2025, 2, 15, 12, 45))
-				.price(4500f).totalSeats(120).availableSeats(120).airlineId("airline-1").build();
+				.departureTime(futureDeparture()).arrivalTime(futureArrival()).price(4500f).totalSeats(120)
+				.availableSeats(120).airlineId("airline-1").build();
 	}
 
 	// ---------- Booking / Passenger ----------
@@ -43,9 +51,9 @@ public class TestDataFactory {
 		return BookingRequest.builder().email("test@example.com").numberOfSeats(1).passengers(List.of(p)).build();
 	}
 
-	public static com.flightapp.entity.Booking sampleBooking() {
-		return com.flightapp.entity.Booking.builder().id("booking-1").pnr("PNR12345").email("test@example.com")
-				.flightId("flight-1").seatsBooked(1).bookingTime(LocalDateTime.now()).canceled(false).build();
+	public static Booking sampleBooking() {
+		return Booking.builder().id("booking-1").pnr("PNR12345").email("test@example.com").flightId("flight-1")
+				.seatsBooked(1).bookingTime(LocalDateTime.now()).canceled(false).build();
 	}
 
 	public static Passenger samplePassenger() {

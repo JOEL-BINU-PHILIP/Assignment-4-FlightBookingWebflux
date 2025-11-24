@@ -45,14 +45,19 @@ public class BookingServiceImplTest {
 	// -----------------------------------------------------
 	@Test
 	void testBookTicket_success() {
+
 		BookingRequest req = TestDataFactory.sampleBookingRequest();
-		Flight flight = TestDataFactory.sampleFlight();
+		Flight flight = TestDataFactory.sampleFlight(); // always future flight
+
 		Booking savedBooking = TestDataFactory.sampleBooking();
 		List<Passenger> passengers = List.of(TestDataFactory.samplePassenger());
 
 		when(flightRepository.findById(flight.getId())).thenReturn(Mono.just(flight));
+
 		when(bookingRepository.save(any())).thenReturn(Mono.just(savedBooking));
+
 		when(passengerRepository.saveAll(anyList())).thenReturn(Flux.fromIterable(passengers));
+
 		when(flightRepository.save(any())).thenReturn(Mono.just(flight));
 
 		StepVerifier.create(bookingService.bookTicket(flight.getId(), req))
@@ -65,6 +70,7 @@ public class BookingServiceImplTest {
 	@Test
 	void testBookTicket_flightNotFound() {
 		BookingRequest req = TestDataFactory.sampleBookingRequest();
+
 		when(flightRepository.findById("badId")).thenReturn(Mono.empty());
 
 		StepVerifier.create(bookingService.bookTicket("badId", req)).expectError(ApiException.class).verify();
@@ -75,6 +81,7 @@ public class BookingServiceImplTest {
 	// -----------------------------------------------------
 	@Test
 	void testBookTicket_notEnoughSeats() {
+
 		BookingRequest req = TestDataFactory.sampleBookingRequest();
 		Flight flight = TestDataFactory.sampleFlight();
 		flight.setAvailableSeats(0);
@@ -92,7 +99,7 @@ public class BookingServiceImplTest {
 	@Test
 	void testBookTicket_passengerMismatch() {
 		BookingRequest req = TestDataFactory.sampleBookingRequest();
-		req.setNumberOfSeats(2); // mismatch
+		req.setNumberOfSeats(2);
 
 		Flight flight = TestDataFactory.sampleFlight();
 
@@ -106,11 +113,12 @@ public class BookingServiceImplTest {
 	// -----------------------------------------------------
 	@Test
 	void testBookTicket_duplicateSeats() {
+
 		PassengerRequest p1 = PassengerRequest.builder().name("A").gender("M").age(20).seatNumber("1A").meal("veg")
 				.build();
 
 		PassengerRequest p2 = PassengerRequest.builder().name("B").gender("M").age(22).seatNumber("1A").meal("veg")
-				.build(); // duplicate seat
+				.build();
 
 		BookingRequest req = BookingRequest.builder().email("x@gmail.com").numberOfSeats(2).passengers(List.of(p1, p2))
 				.build();
@@ -127,10 +135,12 @@ public class BookingServiceImplTest {
 	// -----------------------------------------------------
 	@Test
 	void testGetTicketByPnr_success() {
+
 		Booking booking = TestDataFactory.sampleBooking();
 		Passenger passenger = TestDataFactory.samplePassenger();
 
 		when(bookingRepository.findByPnr("PNR12345")).thenReturn(Mono.just(booking));
+
 		when(passengerRepository.findByBookingId(booking.getId())).thenReturn(Flux.just(passenger));
 
 		StepVerifier.create(bookingService.getTicketByPnr("PNR12345"))
@@ -142,6 +152,7 @@ public class BookingServiceImplTest {
 	// -----------------------------------------------------
 	@Test
 	void testGetTicketByPnr_notFound() {
+
 		when(bookingRepository.findByPnr("bad")).thenReturn(Mono.empty());
 
 		StepVerifier.create(bookingService.getTicketByPnr("bad")).expectError(ApiException.class).verify();
@@ -152,6 +163,7 @@ public class BookingServiceImplTest {
 	// -----------------------------------------------------
 	@Test
 	void testBookingHistory() {
+
 		Booking booking = TestDataFactory.sampleBooking();
 		Passenger passenger = TestDataFactory.samplePassenger();
 
@@ -167,15 +179,18 @@ public class BookingServiceImplTest {
 	// -----------------------------------------------------
 	@Test
 	void testCancelBooking_success() {
+
 		Booking booking = TestDataFactory.sampleBooking();
 		Flight flight = TestDataFactory.sampleFlight();
-		flight.setDepartureTime(LocalDateTime.now().plusHours(30)); // more than 24 hours
+
+		flight.setDepartureTime(LocalDateTime.now().plusHours(30));
 
 		when(bookingRepository.findByPnr(booking.getPnr())).thenReturn(Mono.just(booking));
 
 		when(flightRepository.findById(booking.getFlightId())).thenReturn(Mono.just(flight));
 
 		when(bookingRepository.save(any())).thenReturn(Mono.just(booking));
+
 		when(flightRepository.save(any())).thenReturn(Mono.just(flight));
 
 		StepVerifier.create(bookingService.cancelBooking(booking.getPnr())).verifyComplete();
@@ -186,6 +201,7 @@ public class BookingServiceImplTest {
 	// -----------------------------------------------------
 	@Test
 	void testCancelBooking_notFound() {
+
 		when(bookingRepository.findByPnr("bad")).thenReturn(Mono.empty());
 
 		StepVerifier.create(bookingService.cancelBooking("bad")).expectError(ApiException.class).verify();
@@ -196,6 +212,7 @@ public class BookingServiceImplTest {
 	// -----------------------------------------------------
 	@Test
 	void testCancelBooking_alreadyCanceled() {
+
 		Booking booking = TestDataFactory.sampleBooking();
 		booking.setCanceled(true);
 
@@ -205,13 +222,15 @@ public class BookingServiceImplTest {
 	}
 
 	// -----------------------------------------------------
-	// 12) CANCEL — WITHIN 24 HOURS (not allowed)
+	// 12) CANCEL — WITHIN 24 HOURS
 	// -----------------------------------------------------
 	@Test
 	void testCancelBooking_within24Hours() {
+
 		Booking booking = TestDataFactory.sampleBooking();
 		Flight flight = TestDataFactory.sampleFlight();
-		flight.setDepartureTime(LocalDateTime.now().plusHours(5)); // too soon
+
+		flight.setDepartureTime(LocalDateTime.now().plusHours(5));
 
 		when(bookingRepository.findByPnr(booking.getPnr())).thenReturn(Mono.just(booking));
 
