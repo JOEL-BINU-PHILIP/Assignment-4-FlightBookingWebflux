@@ -23,9 +23,7 @@ public class GlobalErrorHandlerTest {
 		handler = new GlobalErrorHandler();
 	}
 
-	// ---------------------------------------------------------
 	// 1) API EXCEPTION — should return BAD_REQUEST + error JSON
-	// ---------------------------------------------------------
 	@Test
 	void testHandleApiException() {
 		ApiException ex = new ApiException("Something went wrong");
@@ -37,9 +35,7 @@ public class GlobalErrorHandlerTest {
 				.verifyComplete();
 	}
 
-	// ---------------------------------------------------------
 	// 2) VALIDATION EXCEPTION — simulate WebExchangeBindException
-	// ---------------------------------------------------------
 	@Test
 	void testHandleValidationErrors() {
 
@@ -58,9 +54,7 @@ public class GlobalErrorHandlerTest {
 				.verifyComplete();
 	}
 
-	// ---------------------------------------------------------
 	// 3) GENERIC EXCEPTION — INTERNAL_SERVER_ERROR
-	// ---------------------------------------------------------
 	@Test
 	void testHandleGenericException() {
 		Exception ex = new RuntimeException("Random crash");

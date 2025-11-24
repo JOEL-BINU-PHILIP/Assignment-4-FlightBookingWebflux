@@ -10,7 +10,6 @@ public class FlightBookingWebfluxApplicationTests {
 
 	@Test
 	void contextLoads() {
-		// Intentionally left empty because this method is not required in WebFlux
-		// version
+		// Intentionally left empty because this method is not required
 	}
 }

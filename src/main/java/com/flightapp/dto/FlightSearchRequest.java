@@ -22,6 +22,6 @@ public class FlightSearchRequest {
 	@NotNull
 	private LocalDate travelDate;
 
-	// oneWay or roundTrip (not deeply used in logic but added as per assignment)
+	// oneWay or roundTrip
 	private Boolean oneWay = true;
 }

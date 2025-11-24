@@ -40,9 +40,7 @@ public class FlightControllerTest {
 				.controllerAdvice(new com.flightapp.exception.GlobalErrorHandler()).build();
 	}
 
-	// ---------------------------------------------------
 	// 1) ADD INVENTORY — SUCCESS
-	// ---------------------------------------------------
 	@Test
 	void testAddInventory_success() {
 		FlightInventoryRequest req = TestDataFactory.sampleInventoryRequest();
@@ -54,9 +52,7 @@ public class FlightControllerTest {
 				.expectStatus().isCreated().expectBody().jsonPath("$.id").isEqualTo(flightString);
 	}
 
-	// ---------------------------------------------------
 	// 2) ADD INVENTORY — SERVICE THROWS ERROR
-	// ---------------------------------------------------
 	@Test
 	void testAddInventory_serviceError() {
 		FlightInventoryRequest req = TestDataFactory.sampleInventoryRequest();
@@ -67,9 +63,7 @@ public class FlightControllerTest {
 				.expectStatus().isBadRequest().expectBody().jsonPath("$.error").isEqualTo("Duplicate flight");
 	}
 
-	// ---------------------------------------------------
 	// 3) ADD INVENTORY — VALIDATION FAILURE
-	// ---------------------------------------------------
 	@Test
 	void testAddInventory_validationFailed() {
 		FlightInventoryRequest req = TestDataFactory.sampleInventoryRequest();
@@ -79,9 +73,7 @@ public class FlightControllerTest {
 				.expectStatus().isBadRequest().expectBody().jsonPath("$.flightNumber").exists();
 	}
 
-	// ---------------------------------------------------
 	// 4) SEARCH FLIGHTS — SUCCESS
-	// ---------------------------------------------------
 	@Test
 	void testSearchFlights_success() {
 		Flight flight = TestDataFactory.sampleFlight();
@@ -93,9 +85,7 @@ public class FlightControllerTest {
 				.exchange().expectStatus().isOk().expectBody().jsonPath("$[0].flightNumber").isEqualTo("AI101");
 	}
 
-	// ---------------------------------------------------
 	// 5) SEARCH — NO FLIGHTS
-	// ---------------------------------------------------
 	@Test
 	void testSearchFlights_noResults() {
 		FlightSearchRequest req = TestDataFactory.sampleSearchRequest();
@@ -106,9 +96,7 @@ public class FlightControllerTest {
 				.exchange().expectStatus().isOk().expectBody().json("[]");
 	}
 
-	// ---------------------------------------------------
 	// 6) BOOK TICKET — SUCCESS
-	// ---------------------------------------------------
 	@Test
 	void testBookTicket_success() {
 		BookingRequest req = TestDataFactory.sampleBookingRequest();
@@ -122,9 +110,7 @@ public class FlightControllerTest {
 				.isEqualTo("ABCD1234");
 	}
 
-	// ---------------------------------------------------
 	// 7) BOOK TICKET — SERVICE ERROR
-	// ---------------------------------------------------
 	@Test
 	void testBookTicket_serviceError() {
 		BookingRequest req = TestDataFactory.sampleBookingRequest();
@@ -137,9 +123,7 @@ public class FlightControllerTest {
 				.isEqualTo("Not enough seats");
 	}
 
-	// ---------------------------------------------------
 	// 8) GET TICKET BY PNR — SUCCESS
-	// ---------------------------------------------------
 	@Test
 	void testGetTicket_success() {
 		BookingResponse resp = BookingResponse.builder().pnr("PNR12345").flightId(flightString).build();
@@ -150,9 +134,7 @@ public class FlightControllerTest {
 				.jsonPath("$.pnr").isEqualTo("PNR12345");
 	}
 
-	// ---------------------------------------------------
 	// 9) GET TICKET — NOT FOUND
-	// ---------------------------------------------------
 	@Test
 	void testGetTicket_notFound() {
 		when(bookingService.getTicketByPnr("BAD")).thenReturn(Mono.error(new ApiException("PNR not found")));
@@ -161,9 +143,7 @@ public class FlightControllerTest {
 				.jsonPath("$.error").isEqualTo("PNR not found");
 	}
 
-	// ---------------------------------------------------
 	// 10) BOOKING HISTORY — SUCCESS
-	// ---------------------------------------------------
 	@Test
 	void testBookingHistory_success() {
 		BookingResponse resp = BookingResponse.builder().pnr("PNR00001").flightId(flightString).build();
@@ -174,9 +154,7 @@ public class FlightControllerTest {
 				.expectBody().jsonPath("$[0].pnr").isEqualTo("PNR00001");
 	}
 
-	// ---------------------------------------------------
 	// 11) CANCEL BOOKING — SUCCESS
-	// ---------------------------------------------------
 	@Test
 	void testCancelBooking_success() {
 		when(bookingService.cancelBooking("PNR12345")).thenReturn(Mono.empty());
