@@ -9,17 +9,22 @@ import org.springframework.web.bind.support.WebExchangeBindException;
 import java.util.HashMap;
 import java.util.Map;
 
+import lombok.extern.slf4j.Slf4j;
+
 // This class handles ALL exceptions from the entire project.
 // Basically whenever something goes wrong, instead of ugly stack traces,
 // we send neat JSON error responses.
 
 @RestControllerAdvice
+@Slf4j
 public class GlobalErrorHandler {
 
 	// This catches my custom ApiException.
 	// I mostly use this for business logic failures like "Not enough seats".
 	@ExceptionHandler(ApiException.class)
 	public Mono<ResponseEntity<Map<String, String>>> handleApiException(ApiException ex) {
+
+		log.warn("API exception occurred: {}", ex.getMessage());
 
 		return Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", ex.getMessage())));
 	}
@@ -32,7 +37,11 @@ public class GlobalErrorHandler {
 		Map<String, String> errors = new HashMap<>();
 
 		// Extracting each field error into a map
-		ex.getFieldErrors().forEach(fieldError -> errors.put(fieldError.getField(), fieldError.getDefaultMessage()));
+		ex.getFieldErrors().forEach(fieldError -> {
+			errors.put(fieldError.getField(), fieldError.getDefaultMessage());
+		});
+
+		log.warn("Validation failed with errors: {}", errors);
 
 		return Mono.just(ResponseEntity.badRequest().body(errors));
 	}
@@ -43,7 +52,8 @@ public class GlobalErrorHandler {
 	public Mono<ResponseEntity<Map<String, String>>> handleAll(Exception ex) {
 
 		// I printed the exception so I can debug things while developing.
-		ex.printStackTrace();
+		// (Replaced printStackTrace with proper logging)
+		log.error("Unhandled exception occurred", ex);
 
 		// Returning a generic error message
 		return Mono.just(
