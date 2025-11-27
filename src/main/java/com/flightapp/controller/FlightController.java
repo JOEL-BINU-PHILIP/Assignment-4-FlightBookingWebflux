@@ -17,7 +17,7 @@ import reactor.core.publisher.Mono;
 // This is the main controller for all flight + booking operations.
 
 @RestController
-@RequestMapping("/api/v1.0/flight")
+@RequestMapping("/api/flight")
 @Slf4j
 public class FlightController {
 
