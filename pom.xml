@@ -102,29 +102,37 @@
 			</plugin>
 
 			<!-- Jacoco Coverage Plugin -->
-			<plugin>
-				<groupId>org.jacoco</groupId>
-				<artifactId>jacoco-maven-plugin</artifactId>
-				<version>0.8.10</version>
-				<executions>
-					<!-- Attach Jacoco Agent -->
-					<execution>
-						<id>prepare-agent</id>
-						<goals>
-							<goal>prepare-agent</goal>
-						</goals>
-					</execution>
+<plugin>
+    <groupId>org.jacoco</groupId>
+    <artifactId>jacoco-maven-plugin</artifactId>
+    <version>0.8.10</version>
 
-					<!-- Generate Jacoco XML report -->
-					<execution>
-						<id>report</id>
-						<phase>test</phase>
-						<goals>
-							<goal>report</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
+    <configuration>
+        <append>true</append>
+        <destFile>${project.build.directory}/jacoco.exec</destFile>
+        <dataFile>${project.build.directory}/jacoco.exec</dataFile>
+    </configuration>
+
+    <executions>
+        <!-- Attach Jacoco Agent -->
+        <execution>
+            <id>prepare-agent</id>
+            <goals>
+                <goal>prepare-agent</goal>
+            </goals>
+        </execution>
+
+        <!-- Generate BOTH HTML and XML reports -->
+        <execution>
+            <id>report</id>
+            <phase>verify</phase>
+            <goals>
+                <goal>report</goal>
+            </goals>
+        </execution>
+    </executions>
+</plugin>
+
 		</plugins>
 	</build>
 
