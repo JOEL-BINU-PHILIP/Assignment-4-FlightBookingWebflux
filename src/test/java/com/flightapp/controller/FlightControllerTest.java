@@ -26,7 +26,7 @@ public class FlightControllerTest {
 	private FlightService flightService;
 	private BookingService bookingService;
 	private WebTestClient webTestClient;
-	private static String apiPath = "/api/v1.0/flight/airline/inventory/add";
+	private static String apiPath = "/api/flight/airline/inventory/add";
 	private static String flightString = "flight-1";
 
 	@BeforeEach
@@ -81,7 +81,7 @@ public class FlightControllerTest {
 
 		when(flightService.searchFlights(any())).thenReturn(Flux.just(flight));
 
-		webTestClient.post().uri("/api/v1.0/flight/search").contentType(MediaType.APPLICATION_JSON).bodyValue(req)
+		webTestClient.post().uri("/api/flight/search").contentType(MediaType.APPLICATION_JSON).bodyValue(req)
 				.exchange().expectStatus().isOk().expectBody().jsonPath("$[0].flightNumber").isEqualTo("AI101");
 	}
 
@@ -92,7 +92,7 @@ public class FlightControllerTest {
 
 		when(flightService.searchFlights(any())).thenReturn(Flux.empty());
 
-		webTestClient.post().uri("/api/v1.0/flight/search").contentType(MediaType.APPLICATION_JSON).bodyValue(req)
+		webTestClient.post().uri("/api/flight/search").contentType(MediaType.APPLICATION_JSON).bodyValue(req)
 				.exchange().expectStatus().isOk().expectBody().json("[]");
 	}
 
@@ -105,7 +105,7 @@ public class FlightControllerTest {
 
 		when(bookingService.bookTicket(anyString(), any())).thenReturn(Mono.just(resp));
 
-		webTestClient.post().uri("/api/v1.0/flight/booking/flight-1").contentType(MediaType.APPLICATION_JSON)
+		webTestClient.post().uri("/api/flight/booking/flight-1").contentType(MediaType.APPLICATION_JSON)
 				.bodyValue(req).exchange().expectStatus().isCreated().expectBody().jsonPath("$.pnr")
 				.isEqualTo("ABCD1234");
 	}
@@ -118,7 +118,7 @@ public class FlightControllerTest {
 		when(bookingService.bookTicket(anyString(), any()))
 				.thenReturn(Mono.error(new ApiException("Not enough seats")));
 
-		webTestClient.post().uri("/api/v1.0/flight/booking/flight-1").contentType(MediaType.APPLICATION_JSON)
+		webTestClient.post().uri("/api/flight/booking/flight-1").contentType(MediaType.APPLICATION_JSON)
 				.bodyValue(req).exchange().expectStatus().isBadRequest().expectBody().jsonPath("$.error")
 				.isEqualTo("Not enough seats");
 	}
@@ -130,7 +130,7 @@ public class FlightControllerTest {
 
 		when(bookingService.getTicketByPnr("PNR12345")).thenReturn(Mono.just(resp));
 
-		webTestClient.get().uri("/api/v1.0/flight/ticket/PNR12345").exchange().expectStatus().isOk().expectBody()
+		webTestClient.get().uri("/api/flight/ticket/PNR12345").exchange().expectStatus().isOk().expectBody()
 				.jsonPath("$.pnr").isEqualTo("PNR12345");
 	}
 
@@ -139,7 +139,7 @@ public class FlightControllerTest {
 	void testGetTicket_notFound() {
 		when(bookingService.getTicketByPnr("BAD")).thenReturn(Mono.error(new ApiException("PNR not found")));
 
-		webTestClient.get().uri("/api/v1.0/flight/ticket/BAD").exchange().expectStatus().isBadRequest().expectBody()
+		webTestClient.get().uri("/api/flight/ticket/BAD").exchange().expectStatus().isBadRequest().expectBody()
 				.jsonPath("$.error").isEqualTo("PNR not found");
 	}
 
@@ -150,7 +150,7 @@ public class FlightControllerTest {
 
 		when(bookingService.getBookingHistory("test@example.com")).thenReturn(Flux.just(resp));
 
-		webTestClient.get().uri("/api/v1.0/flight/booking/history/test@example.com").exchange().expectStatus().isOk()
+		webTestClient.get().uri("/api/flight/booking/history/test@example.com").exchange().expectStatus().isOk()
 				.expectBody().jsonPath("$[0].pnr").isEqualTo("PNR00001");
 	}
 
@@ -159,6 +159,6 @@ public class FlightControllerTest {
 	void testCancelBooking_success() {
 		when(bookingService.cancelBooking("PNR12345")).thenReturn(Mono.empty());
 
-		webTestClient.delete().uri("/api/v1.0/flight/booking/cancel/PNR12345").exchange().expectStatus().isNoContent();
+		webTestClient.delete().uri("/api/flight/booking/cancel/PNR12345").exchange().expectStatus().isNoContent();
 	}
 }
